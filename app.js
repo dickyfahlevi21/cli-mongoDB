@@ -8,21 +8,31 @@ mongoose.connect('mongodb://localhost/todo', {
     useUnifiedTopology: true
 });
 
-// for test connection with
-const testConnection = () => {
-    const db = mongoose.connection;
-    db.on('error', console.error.bind(console, 'connection error:'));
-    db.once('open', function () {
-        console.log("hoorayyy");
-    });
-}
+// for test connection with mongo
+// const testConnection = () => {
+//     const db = mongoose.connection;
+//     db.on('error', console.error.bind(console, 'connection error: '));
+//     db.once('open', function () {
+//         console.log("success");
+//     });
+// }
 
+
+/**
+ * Reference from Panca Putra Pahlawan
+ * Refactor some code to be readable
+ * change id number 1 to 100 when adding some text
+ */
 
 const todoSchema = new mongoose.Schema({
     kegiatan: String,
     cek: {
         type: Boolean,
         default: false
+    },
+    _id: {
+        type: Number,
+        default: 1
     }
 });
 
@@ -36,17 +46,17 @@ const callback = (error, result) => {
 const showList = async () => {
     const listTodo = await todoModel.find();
     Object.values(listTodo).forEach(val => {
-        if (val.cek == true) {
-            console.log(`${val._id} ${val.kegiatan} (Done)`);
-        } else {
-            console.log(val._id, val.kegiatan);
-        }
-
+        val.cek === true ? console.log(`ID: ${val._id} | Text: ${val.kegiatan} (Done)`) :
+            console.log(`ID: ${val._id} | Text: ${val.kegiatan}`);
     })
 
     mongoose.disconnect();
 }
 
+
+/**
+ * node app list
+ */
 program
     .command("list", "show list")
     .action(() => {
@@ -54,8 +64,9 @@ program
     })
 
 
-//todo add "kegiatan"
-
+/**
+ * node app add "text"
+ */
 program
     .command("add", "add todo")
     .argument("<add>", "add todo")
@@ -64,16 +75,22 @@ program
     }) => {
         (async () => {
             const todo = new todoModel({
-                kegiatan: args.add
+                _id: Number
+            }, {
+                kegiatan: args.add,
             }, callback);
+            todo._id = Math.floor(Math.random() * 100) + 1
+            todo.kegiatan = args.add
             await todo.save();
             showList();
         })();
     })
 
 
-//todo update <id> "kegiatan"
 
+/**
+ * node app update "id" "new text"
+ */
 program
     .command("update", "update todo")
     .argument("<id>")
@@ -95,8 +112,9 @@ program
 
     })
 
-//todo del <id>
-
+/**
+ * node app del "id"
+ */
 program
     .command("del", "del todo")
     .argument("<id>")
@@ -113,20 +131,24 @@ program
 
     })
 
-//todo clear
-//hapus semua todo
+
+/**
+ * node app update "id" "new text"
+ */
 program
     .command("clear", "clear todo")
     .action(() => {
 
         console.log("Are you sure want to delete? [y/N]");
         prompt.get("answer", function (err, res) {
-            if (res.answer == "y" || res.answer == "Y") {
+            let yesAnswer = res.answer.toLowerCase()
+            let noAnswer = res.answer.toLowerCase()
+            if (yesAnswer === "y") {
                 (async () => {
                     await todoModel.deleteMany({}, callback)
                     showList();
                 })();
-            } else if (res.answer == "n" || res.answer == "N") {
+            } else if (noAnswer === "n") {
                 console.log("Clear canceled");
                 mongoose.disconnect();
             } else {
@@ -136,7 +158,9 @@ program
 
     })
 
-//todo done <id>
+/**
+ * node app done "id"
+ */
 program
     .command("done", "done todo")
     .argument("<id>")
@@ -157,7 +181,10 @@ program
 
     })
 
-//todo undone <id>
+
+/**
+ * node app undone "id"
+ */
 program
     .command("undone", "undone todo")
     .argument("<id>")
