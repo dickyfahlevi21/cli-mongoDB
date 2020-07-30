@@ -8,8 +8,12 @@
   },
   "author": "dicky",
   "license": "ISC",
+  "devDependencies": {
+    "@caporal/core": "^2.0.2"
+  },
   "dependencies": {
     "caporal": "^1.4.0",
-    "mongoose": "^5.9.26"
+    "mongoose": "^5.9.26",
+    "prompt": "^1.0.0"
   }
 }
